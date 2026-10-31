@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadFlow CRM</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
+  margin: 0;
+}
+
+.center {
+  text-align: center;
+  margin-top: 100px;
+}
+
+span {
+  color: #7c3aed;
+}
+
+button {
+  background: linear-gradient(45deg,#7c3aed,#06b6d4);
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.gradient {background: linear-gradient(45deg,#7c3aed,#06b6d4);}
+.orange {background:#f97316;}
+.purple {background:#8b5cf6;}
+.blue {background:#3b82f6;}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.cards {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+}
+
+.cards .card {
+  flex: 1;
+  text-align: center;
+}
+
+table {
+  width: 95%;
+  margin: auto;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #333;
+  text-align: center;
+}
+
+.form {
+  text-align: center;
+  margin: 20px;
+}
+
+input, select {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 5px;
+  border: none;
+}
+
+.note {
+  background: #1e293b;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LANDING -->
+<section id="landing" class="center">
+  <h1>Client Lead <span>Management CRM</span></h1>
+  <p>Track, manage, and convert leads into clients</p>
+  <button onclick="showLogin()">Go to Dashboard</button>
+</section>
+
+<!-- LOGIN -->
+<section id="loginPage" class="center hidden">
+  <div class="card">
+    <h2>Welcome Back</h2>
+    <input type="text" placeholder="Email"><br><br>
+    <input type="password" placeholder="Password"><br><br>
+    <button onclick="login()">Login</button>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="hidden">
+
+  <div class="topbar">
+    <h2>Hello, Admin 👋</h2>
+    <button onclick="openNotes()">📒 Notes</button>
+  </div>
+
+  <div class="cards">
+    <div class="card gradient">Total Leads <h3 id="totalLeads">0</h3></div>
+    <div class="card orange">New Leads <h3>0</h3></div>
+    <div class="card purple">Contacted <h3>0</h3></div>
+    <div class="card blue">Converted <h3>0</h3></div>
+  </div>
+
+  <h3 style="padding-left:20px;">Leads</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Company</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="leadTable"></tbody>
+  </table>
+
+  <div class="form">
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+    <input id="phone" placeholder="Phone">
+    <input id="company" placeholder="Company">
+
+    <select id="status">
+      <option>New</option>
+      <option>Contacted</option>
+      <option>Converted</option>
+    </select>
+
+    <button onclick="addLead()">Add Lead</button>
+  </div>
+
+</section>
+
+<!-- NOTES -->
+<section id="notesSection" class="hidden">
+  <h2 style="text-align:center;">Follow-up Notes</h2>
+
+  <div id="notesContainer"></div>
+
+  <div class="form">
+    <input id="noteName" placeholder="Client Name">
+    <input id="noteText" placeholder="Note">
+    <button onclick="addNote()">Add Note</button>
+  </div>
+
+  <div style="text-align:center;">
+    <button onclick="goDashboard()">⬅ Back</button>
+  </div>
+</section>
+
+<script>
+let leads = [
+  {name:"Nijash", email:"nijash@gmail.com", phone:"9876543210", company:"Edge", status:"Converted"},
+  {name:"Sanu", email:"sanu@gmail.com", phone:"9123456780", company:"LMTech", status:"New"},
+  {name:"Bhargavi", email:"bhargavi@gmail.com", phone:"9876542367", company:"Infosys", status:"Converted"},
+  {name:"Apurva", email:"apurva4@gmail.com", phone:"9086734587", company:"Circle", status:"Contacted"},
+  {name:"Mownika", email:"mownika76@gmail.com", phone:"9987645321", company:"Cisco Networking Academy", status:"Contacted"},
+  {name:"Sneha", email:"snehasona@gmail.com", phone:"9987643256", company:"Flipkart", status:"New"}
+];
+
+let notes = [
+  {name:"Nijash", text:"Contract signed"},
+  {name:"Sanu", text:"Interested in demo"},
+  {name:"Mownika", text:"Will join next week"},
+    {name:"Apurva", text:"Contract signed"}
+];
+
+function showLogin(){
+  document.getElementById("landing").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
+}
+
+function login(){
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+  displayLeads();
+}
+
+function displayLeads(){
+  let table = document.getElementById("leadTable");
+  table.innerHTML = "";
+
+  let newCount = 0;
+  let contactedCount = 0;
+  let convertedCount = 0;
+
+  leads.forEach((l, index)=>{
+    table.innerHTML += `
+      <tr>
+        <td>${l.name}</td>
+        <td>${l.email}</td>
+        <td>${l.phone}</td>
+        <td>${l.company}</td>
+        <td>${l.status}</td>
+        <td>
+          <button onclick="editLead(${index})">✏️</button>
+          <button onclick="deleteLead(${index})">🗑️</button>
+        </td>
+      </tr>`;
+
+    if(l.status === "New") newCount++;
+    if(l.status === "Contacted") contactedCount++;
+    if(l.status === "Converted") convertedCount++;
+  });
+
+  document.getElementById("totalLeads").innerText = leads.length;
+  document.querySelector(".orange h3").innerText = newCount;
+  document.querySelector(".purple h3").innerText = contactedCount;
+  document.querySelector(".blue h3").innerText = convertedCount;
+}
+
+function addLead(){
+  let name = document.getElementById("name").value;
+  let email = document.getElementById("email").value;
+  let phone = document.getElementById("phone").value;
+  let company = document.getElementById("company").value;
+  let status = document.getElementById("status").value;
+
+  if(name && email && phone){
+    leads.push({name,email,phone,company,status});
+    displayLeads();
+
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("company").value = "";
+  }
+}
+
+function deleteLead(index){
+  leads.splice(index, 1);
+  displayLeads();
+}
+
+function editLead(index){
+  let l = leads[index];
+
+  document.getElementById("name").value = l.name;
+  document.getElementById("email").value = l.email;
+  document.getElementById("phone").value = l.phone;
+  document.getElementById("company").value = l.company;
+  document.getElementById("status").value = l.status;
+
+  leads.splice(index, 1);
+  displayLeads();
+}
+
+/* NOTES */
+function openNotes(){
+  document.getElementById("dashboard").classList.add("hidden");
+  document.getElementById("notesSection").classList.remove("hidden");
+  displayNotes();
+}
+
+function goDashboard(){
+  document.getElementById("notesSection").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+}
+
+function displayNotes(){
+  let container = document.getElementById("notesContainer");
+  container.innerHTML = "";
+
+  notes.forEach(n=>{
+    container.innerHTML += `
+      <div class="note">
+        <strong>${n.name}</strong>
+        <p>${n.text}</p>
+      </div>`;
+  });
+}
+
+function addNote(){
+  let name = document.getElementById("noteName").value;
+  let text = document.getElementById("noteText").value;
+
+  if(name && text){
+    notes.push({name,text});
+    displayNotes();
+
+    document.getElementById("noteName").value = "";
+    document.getElementById("noteText").value = "";
+  }
+}
+</script>
+
+</body>
+</html>
